@@ -34,6 +34,7 @@ public class MainWindow extends UiPart<Stage> {
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
+    private CommandBox commandBox;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -66,6 +67,24 @@ public class MainWindow extends UiPart<Stage> {
         setAccelerators();
 
         helpWindow = new HelpWindow();
+
+        // Hook onto UP and DOWN keycode and update commandBox value
+        getRoot().addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
+            switch (event.getCode()) {
+            case UP:
+                personListPanel.selectPrev((value) -> {
+                    commandBox.setTextValue(value);
+                });
+                break;
+            case DOWN:
+                personListPanel.selectNext((value) -> {
+                    commandBox.setTextValue(value);
+                });
+                break;
+            default:
+                break;
+            }
+        });
     }
 
     public Stage getPrimaryStage() {
@@ -120,7 +139,8 @@ public class MainWindow extends UiPart<Stage> {
         StatusBarFooter statusBarFooter = new StatusBarFooter(logic.getAddressBookFilePath());
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
-        CommandBox commandBox = new CommandBox(this::executeCommand);
+        commandBox = new CommandBox(this::executeCommand);
+        commandBox.setKeyPressCallback(logger::info);   // do nothing for now
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
     }
 

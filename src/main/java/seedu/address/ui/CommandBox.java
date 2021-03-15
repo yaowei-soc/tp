@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import java.util.function.Consumer;
+
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -67,6 +69,26 @@ public class CommandBox extends UiPart<Region> {
         }
 
         styleClass.add(ERROR_STYLE_CLASS);
+    }
+
+    /**
+     * Sets the commandTextField value.
+     *
+     * @param value to set.
+     */
+    public void setTextValue(String value) {
+        commandTextField.setText(value);
+    }
+
+    /**
+     * Sets the callback function for a keypress.
+     *
+     * @param callback to accept user entered text.
+     */
+    public void setKeyPressCallback(Consumer<String> callback) {
+        commandTextField.setOnKeyPressed((event) -> {
+            callback.accept(commandTextField.getText());
+        });
     }
 
     /**
