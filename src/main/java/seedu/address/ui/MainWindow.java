@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
@@ -32,6 +33,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private AutocompleteListPanel autocompleteListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
     private CommandBox commandBox;
@@ -44,6 +46,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane personListPanelPlaceholder;
+
+    @FXML
+    private StackPane autocompleteListPanelPlaceholder;
 
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -68,21 +73,12 @@ public class MainWindow extends UiPart<Stage> {
 
         helpWindow = new HelpWindow();
 
-        // Hook onto UP and DOWN keycode and update commandBox value
-        getRoot().addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-            switch (event.getCode()) {
-            case UP:
-                personListPanel.selectPrev((value) -> {
+        getRoot().addEventFilter(KeyEvent.KEY_RELEASED, (KeyEvent event) -> {
+            if (event.getCode() == KeyCode.TAB) {
+                autocompleteListPanel.doTab((value) -> {
                     commandBox.setTextValue(value);
                 });
-                break;
-            case DOWN:
-                personListPanel.selectNext((value) -> {
-                    commandBox.setTextValue(value);
-                });
-                break;
-            default:
-                break;
+                event.consume();
             }
         });
     }
@@ -133,6 +129,9 @@ public class MainWindow extends UiPart<Stage> {
                 logic.getDisplayFilter());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
+        autocompleteListPanel = new AutocompleteListPanel();
+        autocompleteListPanelPlaceholder.getChildren().add(autocompleteListPanel.getRoot());
+
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
@@ -140,7 +139,11 @@ public class MainWindow extends UiPart<Stage> {
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
         commandBox = new CommandBox(this::executeCommand);
-        commandBox.setKeyPressCallback(logger::info);   // do nothing for now
+        commandBox.setKeyUpCallback((value) -> {
+            logger.info("value entered: " + value);
+            // Update autocomplete list
+            autocompleteListPanel.updateList(logic.getAutocompleteCommands(value));
+        });
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
     }
 
